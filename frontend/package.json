@@ -1,0 +1,44 @@
+{
+  "name": "finance-ai-platform-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 3000",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 3000",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:a11y": "playwright test e2e/accessibility.spec.ts",
+    "format:check": "prettier --check .",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "lockfile": "npm install --package-lock-only --ignore-scripts"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "6.1.2",
+    "vite": "8.3.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "vitest": "3.2.4",
+    "jsdom": "26.1.0",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/jest-dom": "6.6.3",
+    "@playwright/test": "1.53.0",
+    "@axe-core/playwright": "4.10.2",
+    "eslint": "9.29.0",
+    "prettier": "3.6.2",
+    "@eslint/js": "9.29.0",
+    "typescript-eslint": "8.35.0"
+  }
+}

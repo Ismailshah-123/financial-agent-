@@ -1,0 +1,127 @@
+# Local/staging-like container composition. Production deployments should
+# provide managed PostgreSQL/Redis and production-grade secret management.
+#
+# Only the web app (port 3000) is published to the network. PostgreSQL, Redis, Qdrant and the raw
+# API port are bound to 127.0.0.1 so they are reachable from the host for development but not from
+# other machines. Do not widen these bindings on a shared host.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      POSTGRES_DB: ${DB_NAME:-finance_ai_db}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-finance_ai_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  qdrant:
+    image: qdrant/qdrant:1.15.5
+    ports:
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  api:
+    build:
+      context: .
+    restart: unless-stopped
+    environment:
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-development}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_CORS_ORIGINS: '${APP_CORS_ORIGINS:-["http://localhost:3000"]}'
+      # One reverse proxy (the frontend container) sits in front of the API; trust exactly that hop
+      # when reading X-Forwarded-For so the rate limiter sees real client addresses.
+      APP_TRUSTED_PROXY_HOPS: ${APP_TRUSTED_PROXY_HOPS:-1}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      DB_NAME: ${DB_NAME:-finance_ai_db}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SECURITY_JWT_SECRET_KEY: ${SECURITY_JWT_SECRET_KEY:?Set SECURITY_JWT_SECRET_KEY in .env}
+      SECURITY_ALLOW_PUBLIC_REGISTRATION: ${SECURITY_ALLOW_PUBLIC_REGISTRATION:-false}
+      BROKER_PROVIDER: ${BROKER_PROVIDER:-in_memory}
+      SAP_ENABLED: ${SAP_ENABLED:-false}
+      SAP_SERVICE_LAYER_URL: ${SAP_SERVICE_LAYER_URL:-}
+      SAP_COMPANY_DB: ${SAP_COMPANY_DB:-}
+      SAP_USERNAME: ${SAP_USERNAME:-}
+      SAP_PASSWORD: ${SAP_PASSWORD:-}
+      LLM_DEFAULT_PROVIDER: ${LLM_DEFAULT_PROVIDER:-groq}
+      LLM_GROQ_API_KEY: ${LLM_GROQ_API_KEY:-}
+      LLM_ANTHROPIC_API_KEY: ${LLM_ANTHROPIC_API_KEY:-}
+      LLM_OPENAI_API_KEY: ${LLM_OPENAI_API_KEY:-}
+      LLM_GEMINI_API_KEY: ${LLM_GEMINI_API_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  worker:
+    build:
+      context: .
+    restart: unless-stopped
+    environment:
+      APP_ENVIRONMENT: ${APP_ENVIRONMENT:-development}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      DB_NAME: ${DB_NAME:-finance_ai_db}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SECURITY_JWT_SECRET_KEY: ${SECURITY_JWT_SECRET_KEY:?Set SECURITY_JWT_SECRET_KEY in .env}
+      LLM_DEFAULT_PROVIDER: ${LLM_DEFAULT_PROVIDER:-groq}
+      LLM_GROQ_API_KEY: ${LLM_GROQ_API_KEY:-}
+      LLM_ANTHROPIC_API_KEY: ${LLM_ANTHROPIC_API_KEY:-}
+      LLM_OPENAI_API_KEY: ${LLM_OPENAI_API_KEY:-}
+      LLM_GEMINI_API_KEY: ${LLM_GEMINI_API_KEY:-}
+    depends_on:
+      api:
+        condition: service_healthy
+    command: ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=info"]
+
+  frontend:
+    restart: unless-stopped
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: /api/v1
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "3000:8080"
+
+volumes:
+  postgres_data:
+  qdrant_data:

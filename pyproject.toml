@@ -1,0 +1,38 @@
+[project]
+name = "finance-ai-platform"
+version = "0.1.0"
+description = "Enterprise multi-agent AI Finance Department platform."
+requires-python = ">=3.11"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+ignore = ["E501"]  # line length is handled by black
+
+[tool.mypy]
+python_version = "3.11"
+plugins = ["pydantic.mypy"]
+strict = true
+warn_return_any = true
+ignore_missing_imports = true
+exclude = ["tests/", "alembic/"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+# The integration suite's DB engine and schema fixture are session-scoped
+# (tests/integration/conftest.py) but pytest-asyncio's own default fixture
+# loop scope is function-scoped — without pinning this, later tests reuse
+# an asyncpg connection bound to an event loop pytest already tore down,
+# which surfaces as "got result for unknown protocol state" errors rather
+# than a clear "wrong event loop" message. Session scope matches the
+# fixtures that are actually session-scoped.
+asyncio_default_fixture_loop_scope = "session"
+testpaths = ["tests/unit", "tests/integration"]
+addopts = "-v --cov=app --cov-report=term-missing"

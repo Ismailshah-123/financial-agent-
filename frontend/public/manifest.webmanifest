@@ -1,0 +1,9 @@
+{
+  "name": "Vertex Data Systems Finance AI Control Center",
+  "short_name": "Finance AI",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#0b1f3a",
+  "icons": []
+}
