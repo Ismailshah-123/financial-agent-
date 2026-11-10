@@ -1,15 +1,18 @@
 <div align="center">
-  <img src="assets/financial-agent-banner.png" alt="Financial Agent — AI-powered financial intelligence for every business" width="100%" />
-  <h1>Financial Agent</h1>
-  <p><strong>AI-assisted financial operations, insights, and decision support for businesses of every size.</strong></p>
-  <p>Automate repetitive work · Understand financial performance · Make better-informed decisions</p>
-  <p>
-    <img alt="Python" src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" />
-    <img alt="FastAPI" src="https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white" />
-    <img alt="React" src="https://img.shields.io/badge/Frontend-React-61DAFB?logo=react&logoColor=20232A" />
-    <img alt="PostgreSQL" src="https://img.shields.io/badge/Database-PostgreSQL-4169E1?logo=postgresql&logoColor=white" />
-    <img alt="Docker" src="https://img.shields.io/badge/Deployment-Docker-2496ED?logo=docker&logoColor=white" />
-  </p>
+
+  <img src="assets/financial-agent-banner.png" alt="Financial Agent" width="100%" />
+
+  # Financial Agent
+
+  **AI-assisted financial operations, reporting, and decision support.**
+
+  <sub>Connect business data · Surface exceptions · Keep people in control</sub>
+
+  ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+  ![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)
+  ![React](https://img.shields.io/badge/Frontend-React-61DAFB?logo=react&logoColor=20232A)
+  ![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+
 </div>
 
 > Financial Agent is a business-focused financial operations platform with AI-agent foundations. It is designed to help teams understand receivables, payables, cash movement, budgets, reconciliations, reporting, compliance workflows, and operational risk. It is **not limited to one ERP or one industry**. Existing systems can be connected through appropriate APIs, webhooks, import/export pipelines, and purpose-built adapters.
